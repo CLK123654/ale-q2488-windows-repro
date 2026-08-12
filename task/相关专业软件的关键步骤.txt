@@ -1,0 +1,7 @@
+1.解压输入包，读取release_plan.csv、environment_values、metric_catalog.csv和change_request.txt。
+2.调整Chart的values.yaml和values.schema.json，建立gateway与alerts入口并限制字段类型。
+3.编写ServiceMonitor模板，使Service名称、端口、路径和抓取间隔来自环境values。
+4.编写PrometheusRule模板，按alerts列表生成规则并写入表达式、持续时间、级别、负责人和region。
+5.运行helm lint检查Chart，再按release_plan.csv中的发布名、命名空间和values执行helm template。
+6.解析两份候选清单，核对对象身份、抓取端点、Service选择器及全部告警规则。
+7.整理scrape_endpoints.csv、alert_routes.csv和release_note.md，保留变更单与候选清单的对应关系。

@@ -1,0 +1,7 @@
+API网关要接入观测栈，Service已经提供metrics端口，Chart里却只有占位ConfigMap。两个环境的抓取间隔不同，告警规则也没有进入发布包。
+
+release_plan.csv列出环境和发布位置，environment_values保存Service及抓取入口。metric_catalog.csv是确认的告警目录，change_request.txt说明范围，starter是待接手的Chart。
+
+Chart改为生成ServiceMonitor和PrometheusRule。抓取对象使用环境值中的Service名称、端口、路径和间隔；规则来自指标目录，每个环境带上自己的region。values入口约束这些字段。
+
+用Helm检查Chart并生成两份候选清单。Chart、新values和清单放在output，scrape_endpoints.csv供观测团队核对抓取入口，alert_routes.csv连接告警和负责人。release_note.md写明范围，现场应用及观察由维护窗值班继续处理。

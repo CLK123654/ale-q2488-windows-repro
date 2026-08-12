@@ -1,0 +1,121 @@
+总分100分
+
+1. 发布材料完整性
+分值：10分
+标准答案：output包含chart/gateway-observe、values/staging.yaml、values/production.yaml、renders/staging.yaml、renders/production.yaml、reports/scrape_endpoints.csv、reports/alert_routes.csv和release_note.md。
+关键字段：交付路径、Chart文件、环境values、候选清单、CSV表头和说明正文。
+容差：YAML键序、缩进和注释可以变化，按文件用途和结构化内容判定。
+失败边界：Chart、任一环境values、任一候选清单或两份业务报告缺失。
+可观察证据：output目录和各交付文件。
+客观硬性标准：观测团队与版本负责人所需材料均可打开并能相互定位。
+阈值：核心材料完整率为100%。
+优先级：Gate项
+所属层级：L1任务指令遵循层
+
+2. 输入材料使用
+分值：10分
+标准答案：release_plan.csv中的staging和production都形成独立values及候选清单；metric_catalog.csv中的每个告警都进入两个环境的PrometheusRule；输入文件未被改写。
+关键字段：environment、release_name、namespace、values_file、change_ticket、alert_name和metric_name。
+容差：CSV行序可以变化，按environment和alert_name连接。
+失败边界：环境漏处理、告警漏项、环境值串用，或输入文件发生变化。
+可观察证据：全部输入、output/values、output/renders和两份报告。
+客观硬性标准：环境集合和指标告警集合完整闭合。
+阈值：环境差异数、告警差异数和输入变化数均为0。
+优先级：Gate项
+所属层级：L3输入数据导入与完整性层
+
+3. Chart入口约束
+分值：10分
+标准答案：values.schema.json要求gateway和alerts入口，限制未知顶层字段，并对Service名称、端口、指标路径、抓取间隔、team、region及告警字段给出与输入一致的类型约束。
+关键字段：type、additionalProperties、required、properties、items、minimum、maximum、pattern和enum。
+容差：schema内部键序和等价的字符串非空约束可以变化。
+失败边界：任一环境或告警字段没有schema入口、允许未知顶层字段，或字段类型与输入不符。
+可观察证据：chart/gateway-observe/values.schema.json和两份环境values。
+客观硬性标准：输入中的环境与告警字段均受约束，两份values可通过Helm检查。
+阈值：未约束字段数和类型偏差数均为0。
+优先级：高权重项
+所属层级：L7产物结构 / Schema / 专业对象层
+
+4. Helm候选清单
+分值：12分
+标准答案：两个环境均由Helm成功渲染，每份清单只包含同名ServiceMonitor和PrometheusRule，名称与命名空间来自release_plan.csv。
+关键字段：apiVersion、kind、metadata.name、metadata.namespace、release_name和namespace。
+容差：文档顺序、键序、缩进和空行可以变化，按对象复合身份比较。
+失败边界：helm lint或helm template失败，对象缺失、重复、名称或命名空间错误。
+可观察证据：Helm退出状态、release_plan.csv和output/renders。
+客观硬性标准：两份清单均可结构化解析，对象集合与环境计划一致。
+阈值：Helm失败数、缺失对象数和额外对象数均为0。
+优先级：Gate项
+所属层级：L8运行验证 / 可执行行为层
+
+5. ServiceMonitor抓取入口
+分值：14分
+标准答案：ServiceMonitor选择器使用环境值中的serviceName，namespaceSelector包含本环境命名空间，endpoint的port为metrics，targetPort、path和interval逐项来自环境值，team标签保留。
+关键字段：metadata.labels、selector.matchLabels、namespaceSelector.matchNames和endpoints。
+容差：标签及列表顺序可以变化，按键和值比较。
+失败边界：选错Service或命名空间，端口、路径、间隔串用，或team丢失。
+可观察证据：environment_values、release_plan.csv、ServiceMonitor和scrape_endpoints.csv。
+客观硬性标准：每个环境的抓取入口与输入完全一致。
+阈值：字段偏差数和选择器错误数均为0。
+优先级：高权重项
+所属层级：L9跨产物一致性与可追溯层
+
+6. PrometheusRule告警内容
+分值：14分
+标准答案：每份PrometheusRule覆盖metric_catalog.csv中的全部alert_name，expr、for、severity、owner和metric逐项一致，region来自对应环境值。
+关键字段：groups.rules.alert、expr、for、labels.severity、labels.owner、labels.region和annotations.metric。
+容差：规则顺序可以变化，按alert_name连接后比较；表达式外层YAML引号样式可以变化，解析值不可变化。
+失败边界：规则漏项、重复，表达式或持续时间变化，级别、负责人、指标或region错误。
+可观察证据：metric_catalog.csv、environment_values、PrometheusRule和alert_routes.csv。
+客观硬性标准：告警目录逐项落到两个环境的规则对象。
+阈值：缺失规则数、重复规则数和字段偏差数均为0。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+7. 抓取端点记录
+分值：8分
+标准答案：scrape_endpoints.csv按环境记录发布名、命名空间、变更单、Service名称、端口、路径、间隔、region和READY状态，值与输入及ServiceMonitor一致。
+关键字段：environment、release_name、namespace、change_ticket、service_name、service_port、metrics_path、scrape_interval、region和status。
+容差：行序可以变化，按environment比较。
+失败边界：环境缺行、字段为空、值与输入或候选清单不一致，或status不是READY。
+可观察证据：release_plan.csv、environment_values、ServiceMonitor和scrape_endpoints.csv。
+客观硬性标准：两个环境的端点记录都能回到输入及候选清单。
+阈值：缺行数、字段偏差数和错误状态数均为0。
+优先级：普通项
+所属层级：L9跨产物一致性与可追溯层
+
+8. 告警负责人记录
+分值：8分
+标准答案：alert_routes.csv按环境和alert_name记录metric_name、duration、severity、owner、候选清单路径及READY状态，覆盖指标目录全部规则。
+关键字段：environment、alert_name、metric_name、duration、severity、owner、evidence和status。
+容差：行序可以变化，按environment与alert_name比较。
+失败边界：告警缺行、负责人或级别错误、evidence不能定位环境清单，或status不是READY。
+可观察证据：metric_catalog.csv、PrometheusRule和alert_routes.csv。
+客观硬性标准：每条告警在两个环境都有可追溯记录。
+阈值：缺行数、字段偏差数和失效证据数均为0。
+优先级：普通项
+所属层级：L9跨产物一致性与可追溯层
+
+9. 发布说明
+分值：8分
+标准答案：release_note.md写明两个环境的ServiceMonitor与PrometheusRule候选清单、两份报告的用途，以及维护窗值班负责现场应用、指标采集和告警观察。
+关键字段：环境范围、观测对象、抓取端点报告、告警路由报告和现场职责。
+容差：标题、段落顺序和措辞可以变化，业务事实不可变化。
+失败边界：遗漏环境范围、材料用途或现场职责，或把候选清单写成已上线结果。
+可观察证据：change_request.txt、release_plan.csv和release_note.md。
+客观硬性标准：五类信息均可定位且与输入计划一致。
+阈值：必需信息缺失数为0。
+优先级：普通项
+所属层级：L1任务指令遵循层
+
+10. 占位对象退除
+分值：6分
+标准答案：交付Chart不再生成starter中的observe-placeholder ConfigMap，候选清单只保留ServiceMonitor和PrometheusRule。
+关键字段：templates目录、kind和metadata.name。
+容差：Chart内部辅助模板可以增加，不能生成题面范围外的Kubernetes对象。
+失败边界：占位ConfigMap仍被渲染，或新增没有观测团队消费者的对象。
+可观察证据：starter Chart、交付Chart和两份候选清单。
+客观硬性标准：占位对象命中数和额外对象数均为0。
+阈值：命中数为0。
+优先级：辅助项
+所属层级：L10抗投机 / 反作弊层

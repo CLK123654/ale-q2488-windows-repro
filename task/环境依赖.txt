@@ -1,0 +1,7 @@
+操作系统： Windows11。
+
+主软件为Helm3.18.4，通过原生helm.exe检查Chart并渲染两个环境的ServiceMonitor和PrometheusRule候选清单。PowerShell7调用Helm，Python3.12与PyYAML6.0.2整理CSV、YAML和Markdown材料。
+
+普通x64CPU即可处理这组Chart，不需要GPU。磁盘要留出输入包、Chart、两套环境values、渲染清单和发布报告的可写空间。Helm命令使用有限超时，具体时限沿用发布团队的本地命令策略；本题没有集群等待时间。
+
+安装软件时可以联网，工作范围是本地输入和output目录。需要防止两个环境的端点串用、ServiceMonitor选择器偏离网关Service，以及告警负责人或级别在模板中丢失。

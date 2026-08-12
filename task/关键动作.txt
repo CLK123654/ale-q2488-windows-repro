@@ -1,0 +1,5 @@
+核对环境发布计划、网关Service信息和指标目录，确认观测对象的环境归属。
+把环境值和告警目录转成Chart的gateway与alerts入口，并为入口设置schema约束。
+用ServiceMonitor描述网关抓取端点，使Service选择、端口、路径和间隔来自对应环境。
+用PrometheusRule承载指标目录中的告警规则，并保留级别、负责人和环境region。
+运行Helm生成两份候选清单，整理抓取端点、告警路由和发布说明交给版本负责人。

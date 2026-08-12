@@ -1,0 +1,1 @@
+API网关的指标端点已经随Service提供，现有Chart却只留下占位ConfigMap，抓取入口和告警规则仍散落在环境记录里。需要依据发布计划、环境值和指标目录改好Helm Chart，生成staging与production的ServiceMonitor和PrometheusRule候选清单，并把抓取端点及告警负责人留给观测团队。
